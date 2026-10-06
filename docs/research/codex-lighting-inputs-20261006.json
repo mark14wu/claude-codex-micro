@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-06T17:42:30.901994+00:00",
+  "readOnly": true,
+  "deviceOpened": false,
+  "sessionIdentitiesIncluded": false,
+  "app": {
+    "bundleId": "com.openai.codex",
+    "version": "26.930.61225",
+    "build": "13232"
+  },
+  "configuredAgentSource": "pinned",
+  "configuredAgentSourceRecognized": true,
+  "persistedInputs": {
+    "globalState": {
+      "pinned-thread-ids": {
+        "present": true,
+        "type": "list",
+        "entryCount": 2
+      },
+      "pinned-project-ids": {
+        "present": true,
+        "type": "list",
+        "entryCount": 2
+      },
+      "app-server-migrated-pinned-thread-ids-by-host": {
+        "present": true,
+        "type": "dict",
+        "entryCount": 2
+      },
+      "sidebar-project-thread-orders": {
+        "present": true,
+        "type": "dict",
+        "entryCount": 14
+      }
+    },
+    "persistedAtoms": {
+      "unified-sidebar-pinned-order-v1": {
+        "present": true,
+        "type": "list",
+        "entryCount": 32
+      },
+      "app-server-pinned-thread-order-v1": {
+        "present": true,
+        "type": "list",
+        "entryCount": 0
+      },
+      "flat-project-sidebar-preferences-v1": {
+        "present": true,
+        "type": "dict",
+        "entryCount": 4
+      },
+      "codex-micro-custom-agent-assignments": {
+        "present": false
+      }
+    }
+  },
+  "liveModel": {
+    "providerImplemented": false,
+    "safeToDriveHardware": false,
+    "missingVerifiedInputs": [
+      "Resolved ordered six slots matching the native renderer",
+      "Current per-slot status and status-priority inputs",
+      "Current selection, window focus and pulsing flags",
+      "Current brightness and complete keys/ambient zone model",
+      "Ordered updates and freshness across host, layer and device changes"
+    ]
+  },
+  "scope": "Counts of persisted candidate inputs only. Presence does not establish freshness or native six-slot identity. No conversation transcript files, live app memory or HID traffic were read; session titles and identities are excluded from output."
+}

@@ -1,0 +1,59 @@
+{
+  "testedAt": "2026-10-06T17:43:08.855Z",
+  "codexVersion": "26.930.61225",
+  "codexBuild": "13232",
+  "scope": "offline per-key status-to-wire mapping only",
+  "result": "passed",
+  "oracle": {
+    "source": "Installed Codex app.asar, read-only; native pure thread renderer and palette plus SDK serialization with an in-memory RPC sink",
+    "sourceSha256": {
+      "service": "0cee2d11d9f74b2119377c1e71d6739c92835c73108d55e1d46d4025daf4fe9b",
+      "palette": "5759fc581485ffbae068afedbdfd7067d8500bbe0272793458a13ac0d333b330",
+      "sdk": "b8c347ecef1a82a508c1cabd4ef41b448ad2be2b168ef795fb793cc66b169e06",
+      "effects": "84d250b44d0645157465b610fe94a82419b338b8e02119fbe6b22591d584edf0"
+    },
+    "hardwareIo": false,
+    "appProcessInteraction": false,
+    "sourceRedistributed": false
+  },
+  "coverage": {
+    "statuses": [
+      "working",
+      "unread",
+      "idle",
+      "awaiting-approval",
+      "awaiting-response",
+      "error",
+      "off"
+    ],
+    "brightnessValues": [
+      0,
+      0.001,
+      0.3,
+      0.65,
+      1
+    ],
+    "selected": [
+      false,
+      true
+    ],
+    "pulsing": [
+      false,
+      true
+    ],
+    "slotOrderPermutations": 720,
+    "homogeneousAndMixedSlotFrames": true,
+    "framesCompared": 201600,
+    "slotOutputsCompared": 1209600,
+    "mismatches": 0
+  },
+  "implementation": "scripts/lib/codex-thread-lighting.mjs",
+  "limitations": [
+    "Synthetic models only; no verified current session roster or live status source.",
+    "No rgbcfg keys/ambient, voice-state, inactivity or selection-visibility timer parity established.",
+    "No hardware rendering, transport ownership, recovery latency or firmware animation phase tested.",
+    "Missing selected/pulsing flags are intentionally rejected, although native code treats omitted pulsing as false.",
+    "A complete model and matched renderer do not establish source attribution, freshness or permission to write.",
+    "Source hashes pin these results to the inspected app build; updates require revalidation."
+  ]
+}

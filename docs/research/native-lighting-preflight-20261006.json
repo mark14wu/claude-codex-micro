@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-06T15:38:09.428Z",
+  "readOnly": true,
+  "status": "unsupported",
+  "app": {
+    "path": "/Applications/ChatGPT.app",
+    "bundleId": "com.openai.codex",
+    "version": "26.930.61225",
+    "build": "13232"
+  },
+  "framework": "/Applications/ChatGPT.app/Contents/Frameworks/Codex Framework.framework/Codex Framework",
+  "fuseInspection": {
+    "format": "mach-o",
+    "status": "parsed",
+    "errors": [],
+    "slices": [
+      {
+        "cpuType": 16777228,
+        "architecture": "arm64",
+        "littleEndian": true,
+        "is64": true,
+        "offset": 0,
+        "size": 271729344,
+        "status": "parsed",
+        "errors": [],
+        "wires": [
+          {
+            "offset": 223374234,
+            "version": 1,
+            "length": 9,
+            "raw": "010011001",
+            "status": "parsed",
+            "states": [
+              {
+                "index": 0,
+                "name": "RunAsNode",
+                "raw": "0",
+                "state": "disabled",
+                "enabled": false
+              },
+              {
+                "index": 1,
+                "name": "EnableCookieEncryption",
+                "raw": "1",
+                "state": "enabled",
+                "enabled": true
+              },
+              {
+                "index": 2,
+                "name": "EnableNodeOptionsEnvironmentVariable",
+                "raw": "0",
+                "state": "disabled",
+                "enabled": false
+              },
+              {
+                "index": 3,
+                "name": "EnableNodeCliInspectArguments",
+                "raw": "0",
+                "state": "disabled",
+                "enabled": false
+              },
+              {
+                "index": 4,
+                "name": "EnableEmbeddedAsarIntegrityValidation",
+                "raw": "1",
+                "state": "enabled",
+                "enabled": true
+              },
+              {
+                "index": 5,
+                "name": "OnlyLoadAppFromAsar",
+                "raw": "1",
+                "state": "enabled",
+                "enabled": true
+              },
+              {
+                "index": 6,
+                "name": "LoadBrowserProcessSpecificV8Snapshot",
+                "raw": "0",
+                "state": "disabled",
+                "enabled": false
+              },
+              {
+                "index": 7,
+                "name": "GrantFileProtocolExtraPrivileges",
+                "raw": "0",
+                "state": "disabled",
+                "enabled": false
+              },
+              {
+                "index": 8,
+                "name": "WasmTrapHandlers",
+                "raw": "1",
+                "state": "enabled",
+                "enabled": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "requiredEntryPoints": {
+    "nodeOptions": {
+      "name": "EnableNodeOptionsEnvironmentVariable",
+      "state": "disabled",
+      "enabledOnEveryArchitecture": false,
+      "slices": [
+        {
+          "architecture": "arm64",
+          "state": "disabled",
+          "raw": "0"
+        }
+      ]
+    },
+    "inspector": {
+      "name": "EnableNodeCliInspectArguments",
+      "state": "disabled",
+      "enabledOnEveryArchitecture": false,
+      "slices": [
+        {
+          "architecture": "arm64",
+          "state": "disabled",
+          "raw": "0"
+        }
+      ]
+    }
+  },
+  "referenceRoutes": {
+    "nativeShim": {
+      "entryPoints": [
+        "NODE_OPTIONS=--require=<preload>"
+      ],
+      "requiredFuse": "EnableNodeOptionsEnvironmentVariable",
+      "fuseState": "disabled",
+      "status": "unsupported",
+      "reason": "Required entry point is disabled in at least one architecture"
+    },
+    "inspectorCompanion": {
+      "entryPoints": [
+        "--inspect",
+        "--inspect-brk",
+        "SIGUSR1 inspector activation"
+      ],
+      "requiredFuse": "EnableNodeCliInspectArguments",
+      "fuseState": "disabled",
+      "status": "unsupported",
+      "reason": "Required entry point is disabled in at least one architecture"
+    }
+  },
+  "scope": "Checks only the two reference entry points above; does not rule out other integrations. No app restart, injection, signal, HID access or app modification was performed.",
+  "sources": [
+    "https://github.com/electron/fuses/blob/main/src/config.ts",
+    "https://www.electronjs.org/docs/latest/tutorial/fuses#nodeoptions",
+    "https://www.electronjs.org/docs/latest/tutorial/fuses#nodecliinspect"
+  ]
+}

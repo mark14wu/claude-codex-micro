@@ -1,0 +1,107 @@
+{
+  "date": "2026-10-06",
+  "timezone": "America/New_York",
+  "scope": "Two bounded trials, each with one temporary six-color write under exclusive USB HID ownership, followed by release to unmodified Codex",
+  "environment": {
+    "macOS": "26.6.2",
+    "firmware": "0.6.3",
+    "profileIndex": 1,
+    "layerIndexDuringLightingTest": 1,
+    "vendorId": "0x303a",
+    "productId": "0x8360",
+    "usagePage": "0xff00",
+    "usage": 1
+  },
+  "guardedFirstAttempt": {
+    "log": ".local/diagnostics/lighting-handoff-1791307264206.ndjson",
+    "time": "2026-10-06T17:21:04.206Z",
+    "actualLayerIndex": 2,
+    "result": "Aborted before lighting write because current layer was Claude",
+    "lightingWritten": false,
+    "released": true
+  },
+  "lightingTest": {
+    "log": ".local/diagnostics/lighting-handoff-1791307366046.ndjson",
+    "sharedWaitStart": "2026-10-06T17:22:46.103Z",
+    "nativeLayerDetected": "2026-10-06T17:23:55.900Z",
+    "exclusiveOpen": "2026-10-06T17:23:56.009Z",
+    "method": "v.oai.thstatus",
+    "colorsInSlotOrder": ["ff0000", "00ff00", "0000ff", "ffff00", "ff00ff", "00ffff"],
+    "commonSlotParameters": { "b": 0.65, "e": 1, "s": 0.5, "sk": 0, "sa": 0 },
+    "lightingRpcCount": 1,
+    "acknowledged": "2026-10-06T17:23:56.079Z",
+    "ackResult": { "ok": 1 },
+    "holdSeconds": 20,
+    "released": "2026-10-06T17:24:16.097Z",
+    "exitCode": 0,
+    "keymapChanged": false,
+    "firmwareChanged": false,
+    "globalZoneConfigWritten": false,
+    "offOrSelfChosenRestoreWritten": false
+  },
+  "nativeCodex": {
+    "writeBlocked": "2026-10-06T17:23:56.088Z",
+    "blockedIoReturn": "0xe00002c5",
+    "lastFailedReconnectDuringClaim": "2026-10-06T17:24:14.133Z",
+    "reconnected": "2026-10-06T17:24:24.137Z",
+    "rgbConfigResponse": "2026-10-06T17:24:24.149Z",
+    "threadStatusResponse": "2026-10-06T17:24:24.208Z",
+    "deviceStatusResponse": "2026-10-06T17:24:24.266Z",
+    "secondsFromReleaseToThreadStatusResponse": 8.111,
+    "attribution": "Codex's own application log, not merely a foreign HID response"
+  },
+  "operatorObservations": {
+    "selectedCodexLayer": true,
+    "sawSixColorPattern": null,
+    "sawAutomaticNativeRestoration": null,
+    "response": "Requested a repeat instead of confirming the first trial's physical outcome"
+  },
+  "repeatTest": {
+    "log": ".local/diagnostics/lighting-handoff-1791307665399.ndjson",
+    "nativeLayerDetected": "2026-10-06T17:27:45.474Z",
+    "exclusiveOpen": "2026-10-06T17:27:45.525Z",
+    "method": "v.oai.thstatus",
+    "samePatternAsFirstTest": true,
+    "lightingRpcCount": 1,
+    "acknowledged": "2026-10-06T17:27:45.588Z",
+    "holdSeconds": 30,
+    "released": "2026-10-06T17:28:15.615Z",
+    "exitCode": 0,
+    "keymapChanged": false,
+    "firmwareChanged": false,
+    "globalZoneConfigWritten": false,
+    "offOrSelfChosenRestoreWritten": false,
+    "nativeCodex": {
+      "writeFailureOrReconnectObservedDuringClaim": false,
+      "postReleaseDeviceStatusResponsesBeforeLighting": [
+        "2026-10-06T17:28:24.305Z",
+        "2026-10-06T17:29:24.316Z"
+      ],
+      "firstPostReleaseRgbConfigResponse": "2026-10-06T17:29:31.289Z",
+      "firstPostReleaseThreadStatusResponse": "2026-10-06T17:29:31.350Z",
+      "secondsFromReleaseToThreadStatusResponse": 75.735,
+      "refreshTriggerEstablished": false,
+      "attribution": "Codex's own application log, not merely a foreign HID response"
+    },
+    "operatorObservations": {
+      "sawSixColorPattern": null,
+      "sawAutomaticNativeRestoration": true,
+      "response": "已经自动恢复 Codex 灯光",
+      "context": "Asked whether lights recovered without pressing Micro or manually switching sessions",
+      "physicalRestorationTimeMeasured": false
+    }
+  },
+  "conclusion": {
+    "eventualNativeRestorationConfirmed": true,
+    "immediateOrBoundedLayerHandoffEstablished": false,
+    "explanation": "Releasing ownership alone does not guarantee a native redraw. The repeat had no observed native failure during the claim, and successful later status queries did not refresh lighting. Static code inspection identifies lighting deduplication as a plausible explanation; the event that ultimately triggered the native redraw was not established."
+  },
+  "limitations": [
+    "Acknowledgements alone do not prove visible rendering or exact restoration of every LED parameter.",
+    "This test uses the existing Codex AG layer, not the F13-F18 Claude layer.",
+    "Native thread-lighting acknowledgement followed release by 8.111 seconds in the first trial and 75.735 seconds in the repeat; these are log timings, not timed physical observations.",
+    "The operator confirmed automatic native restoration only for the repeat, and did not separately confirm the exact six-color pattern.",
+    "Automatic layer ownership, Claude status collection, and routing safety have not been implemented or tested here.",
+    "The earlier unexplained USB disconnects remain recorded separately in hid-seize-test-20261006.json."
+  ]
+}

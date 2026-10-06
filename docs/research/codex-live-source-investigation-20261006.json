@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-06",
+  "codexVersion": "26.930.61225",
+  "codexBuild": "13232",
+  "scope": "Read-only investigation of live model sources and native redraw triggers",
+  "desktopRuntime": {
+    "transport": "stdio",
+    "transportLogTime": "2026-10-06T14:44:48.460Z",
+    "source": "Current desktop application log: Starting app-server connection hostId=local transport=stdio",
+    "defaultControlSocketPresent": false,
+    "legacyControlSocketPresent": false,
+    "bundledCliSupportsProxy": true,
+    "daemonVersionProbe": {
+      "command": "codex app-server daemon version",
+      "exitCode": 1,
+      "result": "Default control socket not found (ENOENT)"
+    },
+    "separateServerWouldEstablishDesktopRuntimeState": false
+  },
+  "officialProtocol": {
+    "source": "https://learn.chatgpt.com/docs/app-server",
+    "threadReadWithoutResume": true,
+    "runtimeStatusAvailableOnConnectedServer": true,
+    "unixWebSocketTransportDocumented": true,
+    "sameDesktopServiceAttachmentEstablished": false,
+    "completeMicroModelGetterFound": false
+  },
+  "privateDesktopIpc": {
+    "socketPresent": true,
+    "sameProtocolAsAppServer": false,
+    "connectedDuringInvestigation": false,
+    "supportedMicroModelGetterFound": false
+  },
+  "pinProjection": {
+    "agentSource": "pinned",
+    "requiresPerHostServerPinOrder": true,
+    "mixesPinnedProjectsAndStandaloneThreads": true,
+    "expandsProjectsBeforeTakingSix": true,
+    "mayDependOnPreviousRendererProjectOrder": true,
+    "legacyPinnedIdsAreCurrentTruth": false,
+    "localDatabaseActivePinnedThreadCount": 0,
+    "localDatabaseArchivedPinnedThreadCount": 11,
+    "remoteHostInventoryRequired": true,
+    "internalGlobalPinnedReadMayMigratePins": true,
+    "safePerHostQueryCandidate": {
+      "verifySectionMethod": "threadSection/list",
+      "method": "thread/list",
+      "params": {
+        "limit": 100,
+        "modelProviders": [],
+        "sectionId": "<redacted-pinned-section-id>",
+        "sortKey": "section_position",
+        "useStateDbOnly": true
+      },
+      "paginationRequired": true,
+      "executed": false,
+      "source": "Installed native listHostSectionThreadIds implementation; not assumed to be a portable public API"
+    }
+  },
+  "brightnessRefreshCandidate": {
+    "setting": "desktop.codex-micro-lighting-brightness",
+    "range": [0, 100],
+    "integer": true,
+    "default": 100,
+    "agentSettingAccess": "hidden",
+    "externalFileLiveReloadEstablished": false,
+    "nativeUiChangeUpdatesModel": true,
+    "allOffSlotsMayStillDeduplicate": true,
+    "changesGlobalZonesAndInactivityTiming": true,
+    "settingChangedDuringInvestigation": false,
+    "conclusion": "No source-supported external-file refresh test; not a reliable automatic handoff trigger"
+  },
+  "sourceSha256": {
+    "application-network-startup-BEAX-hka.js": "634382c7af55d0ff57eb028aa4dd904130215c44fb559ea90a4f4035a5419f6e",
+    "main-C7cfj__D.js": "d8d4f45e673efc81a9e3db98fa0fa57908094bf2fd13f73f6b149cf2a3104c2e",
+    "codex-micro-bridge-f672ba5f3c4d.js": "1c6b94653350ede801d1430e5459e430a23c90eb47947ec9bcbe0d6d20edbca3"
+  },
+  "outcome": {
+    "completeLiveModelObtained": false,
+    "reliableImmediateNativeRedrawObtained": false,
+    "hardwareTakeoverEnabled": false,
+    "deviceOpened": false,
+    "appOrConfigModified": false,
+    "newServerStarted": false,
+    "sessionIdentitiesIncluded": false
+  },
+  "userDecision": {
+    "date": "2026-10-06",
+    "response": "不增加硬件，保留当前按键功能",
+    "additionalHardwareAccepted": false,
+    "retainCurrentButtonConfiguration": true,
+    "dualLayerLightingDeferred": true,
+    "configurationChangedForThisDecision": false
+  },
+  "limits": [
+    "Findings apply to the inspected installation and exposed interfaces, not every possible future integration.",
+    "App-server runtime status alone does not establish native slot identity, selected/focused state, unread state, voice state or transient overrides.",
+    "A hardware USB proxy is a proposed route, not an implemented or tested solution."
+  ]
+}

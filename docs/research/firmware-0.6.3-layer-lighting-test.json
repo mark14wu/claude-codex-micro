@@ -1,0 +1,402 @@
+{
+  "date": "2026-10-06",
+  "timezone": "America/New_York",
+  "firmware": "0.6.3",
+  "profile_index": 1,
+  "interface": "USB vendor HID non-exclusive",
+  "protocol": "v.oai.thstatus",
+  "keymap_sha256_after_test": "4bce78a80fc6c33cff718ce6278990b6f29dc041452e7b0eba1837f9596e0e4a",
+  "patterns": [
+    [
+      "ff0000",
+      "00ff00",
+      "0000ff",
+      "ffff00",
+      "ff00ff",
+      "00ffff"
+    ],
+    [
+      "00ffff",
+      "ff00ff",
+      "ffff00",
+      "0000ff",
+      "00ff00",
+      "ff0000"
+    ]
+  ],
+  "parameters": {
+    "b": 0.65,
+    "e": 1,
+    "s": 0.5,
+    "sk": 0,
+    "sa": 0
+  },
+  "cases": [
+    {
+      "layer_index": 2,
+      "keycodes": [
+        "KC_F13",
+        "KC_F14",
+        "KC_F15",
+        "KC_F16",
+        "KC_F17",
+        "KC_F18"
+      ],
+      "duration_seconds": 40,
+      "acknowledged_frames": 8,
+      "observed_foreign_lighting_responses": 0,
+      "operator_observation": "No visible change"
+    },
+    {
+      "layer_index": 1,
+      "keycodes": [
+        "KV_OAI_AG00",
+        "KV_OAI_AG01",
+        "KV_OAI_AG02",
+        "KV_OAI_AG03",
+        "KV_OAI_AG04",
+        "KV_OAI_AG05"
+      ],
+      "duration_seconds": 30,
+      "acknowledged_frames": 6,
+      "observed_foreign_lighting_responses": 0,
+      "operator_observation": "Colors visibly alternate"
+    }
+  ],
+  "conclusion": "Known thread-lighting channel does not visibly render on the current F13-F18 Claude layer. Same payload renders on the native Codex AG layer. Layer and keycode differ in this comparison; no firmware-internal predicate is proven.",
+  "limitations": [
+    "Acknowledgements do not prove visible rendering; operator observations supply that evidence.",
+    "No independent per-physical-key RGB interface or LED state readback was found in the installed Input SDK.",
+    "An earlier one-shot run received foreign lighting responses about 2.6 seconds later; the two bounded comparison runs above did not."
+  ],
+  "persistent_changes": false,
+  "trace": [
+    {
+      "time": "2026-10-06T14:55:06.753Z",
+      "event": "initial",
+      "version": {
+        "version": "0.6.3"
+      },
+      "status": {
+        "version": "0.6.3",
+        "profile_index": 1,
+        "layer_index": 2,
+        "battery": 100,
+        "is_charging": false
+      },
+      "mode": "bounded-alternating-pattern"
+    },
+    {
+      "time": "2026-10-06T14:55:06.757Z",
+      "event": "waiting-for-claude-layer"
+    },
+    {
+      "time": "2026-10-06T14:55:06.757Z",
+      "event": "wait-result",
+      "status": {
+        "version": "0.6.3",
+        "profile_index": 1,
+        "layer_index": 2,
+        "battery": 100,
+        "is_charging": false
+      }
+    },
+    {
+      "time": "2026-10-06T14:55:06.809Z",
+      "event": "pattern-ack",
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "ff0000",
+        "00ff00",
+        "0000ff",
+        "ffff00",
+        "ff00ff",
+        "00ffff"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:55:06.856Z",
+      "event": "after-pattern",
+      "status": {
+        "version": "0.6.3",
+        "profile_index": 1,
+        "layer_index": 2,
+        "battery": 100,
+        "is_charging": false
+      }
+    },
+    {
+      "time": "2026-10-06T14:55:11.955Z",
+      "event": "pattern-ack",
+      "phase": 1,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "00ffff",
+        "ff00ff",
+        "ffff00",
+        "0000ff",
+        "00ff00",
+        "ff0000"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:55:17.055Z",
+      "event": "pattern-ack",
+      "phase": 2,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "ff0000",
+        "00ff00",
+        "0000ff",
+        "ffff00",
+        "ff00ff",
+        "00ffff"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:55:22.157Z",
+      "event": "pattern-ack",
+      "phase": 3,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "00ffff",
+        "ff00ff",
+        "ffff00",
+        "0000ff",
+        "00ff00",
+        "ff0000"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:55:27.255Z",
+      "event": "pattern-ack",
+      "phase": 4,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "ff0000",
+        "00ff00",
+        "0000ff",
+        "ffff00",
+        "ff00ff",
+        "00ffff"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:55:32.357Z",
+      "event": "pattern-ack",
+      "phase": 5,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "00ffff",
+        "ff00ff",
+        "ffff00",
+        "0000ff",
+        "00ff00",
+        "ff0000"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:55:37.456Z",
+      "event": "pattern-ack",
+      "phase": 6,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "ff0000",
+        "00ff00",
+        "0000ff",
+        "ffff00",
+        "ff00ff",
+        "00ffff"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:55:42.555Z",
+      "event": "pattern-ack",
+      "phase": 7,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "00ffff",
+        "ff00ff",
+        "ffff00",
+        "0000ff",
+        "00ff00",
+        "ff0000"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:55:47.598Z",
+      "event": "finished",
+      "lastStatus": {
+        "version": "0.6.3",
+        "profile_index": 1,
+        "layer_index": 2,
+        "battery": 100,
+        "is_charging": false
+      }
+    },
+    {
+      "time": "2026-10-06T14:56:13.733Z",
+      "event": "initial",
+      "version": {
+        "version": "0.6.3"
+      },
+      "status": {
+        "version": "0.6.3",
+        "profile_index": 1,
+        "layer_index": 2,
+        "battery": 100,
+        "is_charging": false
+      },
+      "mode": "bounded-alternating-pattern"
+    },
+    {
+      "time": "2026-10-06T14:56:13.738Z",
+      "event": "waiting-for-target-layer",
+      "expectedLayer": 1
+    },
+    {
+      "time": "2026-10-06T14:56:26.848Z",
+      "event": "wait-result",
+      "status": {
+        "version": "0.6.3",
+        "profile_index": 1,
+        "layer_index": 1,
+        "battery": 100,
+        "is_charging": false
+      }
+    },
+    {
+      "time": "2026-10-06T14:56:26.902Z",
+      "event": "pattern-ack",
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "ff0000",
+        "00ff00",
+        "0000ff",
+        "ffff00",
+        "ff00ff",
+        "00ffff"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:56:26.951Z",
+      "event": "after-pattern",
+      "status": {
+        "version": "0.6.3",
+        "profile_index": 1,
+        "layer_index": 1,
+        "battery": 100,
+        "is_charging": false
+      }
+    },
+    {
+      "time": "2026-10-06T14:56:32.044Z",
+      "event": "pattern-ack",
+      "phase": 1,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "00ffff",
+        "ff00ff",
+        "ffff00",
+        "0000ff",
+        "00ff00",
+        "ff0000"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:56:37.145Z",
+      "event": "pattern-ack",
+      "phase": 2,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "ff0000",
+        "00ff00",
+        "0000ff",
+        "ffff00",
+        "ff00ff",
+        "00ffff"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:56:42.238Z",
+      "event": "pattern-ack",
+      "phase": 3,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "00ffff",
+        "ff00ff",
+        "ffff00",
+        "0000ff",
+        "00ff00",
+        "ff0000"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:56:47.333Z",
+      "event": "pattern-ack",
+      "phase": 4,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "ff0000",
+        "00ff00",
+        "0000ff",
+        "ffff00",
+        "ff00ff",
+        "00ffff"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:56:52.430Z",
+      "event": "pattern-ack",
+      "phase": 5,
+      "result": {
+        "ok": 1
+      },
+      "colors": [
+        "00ffff",
+        "ff00ff",
+        "ffff00",
+        "0000ff",
+        "00ff00",
+        "ff0000"
+      ]
+    },
+    {
+      "time": "2026-10-06T14:56:57.468Z",
+      "event": "finished",
+      "lastStatus": {
+        "version": "0.6.3",
+        "profile_index": 1,
+        "layer_index": 1,
+        "battery": 100,
+        "is_charging": false
+      }
+    }
+  ]
+}

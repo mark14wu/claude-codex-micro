@@ -1,0 +1,62 @@
+{
+  "testedAt": "2026-10-06T12:39:49-04:00",
+  "scope": "Bounded vendor-defined CoreHID creation probe; not a Codex Micro emulator",
+  "environment": {
+    "macOS": "26.6.2",
+    "macOSBuild": "25G83",
+    "architecture": "arm64",
+    "swift": "6.4",
+    "compilerTarget": "arm64-apple-macos15.0"
+  },
+  "signing": {
+    "validAppleDevelopmentIdentityCountOutsideSandbox": 2,
+    "searchedProfileDirectories": [
+      "~/Library/MobileDevice/Provisioning Profiles",
+      "~/Library/Developer/Xcode/UserData/Provisioning Profiles"
+    ],
+    "profilesFoundInSearchedDirectories": 0,
+    "probeSignature": "compiler-produced ad-hoc signature, verified by codesign",
+    "probeEntitlements": [],
+    "approvedVirtualHIDProfileUsed": false,
+    "note": "These local checks do not establish the user's developer membership or capability approval status."
+  },
+  "probe": {
+    "source": "scripts/probe-virtual-hid.swift",
+    "api": "CoreHID.HIDVirtualDevice",
+    "vendorID": "0xffff",
+    "productID": "0xc0de",
+    "usagePage": "0xff00",
+    "transport": "virtual",
+    "requestedLifetimeSeconds": 10,
+    "dispatchesInputReports": false,
+    "opensPhysicalDevices": false,
+    "execution": "Outside the filesystem sandbox, without restricted entitlements"
+  },
+  "result": {
+    "compilation": "passed",
+    "helpCommand": "passed",
+    "signatureVerification": "passed",
+    "constructorReturned": "nil",
+    "exitCode": 2,
+    "processLog": "IOServiceOpen:0xe00002c2",
+    "ioReturnSymbol": "kIOReturnBadArgument",
+    "remainingProbeInterfacesAfterExit": 0,
+    "interpretation": "Negative control did not create a device. The error alone does not identify the sole cause. An approved virtual-HID entitlement and matching provisioning/signature are independently documented prerequisites; descriptor and Codex compatibility remain unvalidated."
+  },
+  "gates": {
+    "vendorDeviceCreation": "failed without an authorized virtual-HID signature/profile",
+    "codexDiscoveryAndNativeLightingCapture": "not attempted",
+    "exclusivePhysicalDeviceBroker": "not attempted"
+  },
+  "changesToExistingSetup": {
+    "codexApp": false,
+    "inputConfiguration": false,
+    "hammerspoonConfiguration": false,
+    "physicalDeviceKeymap": false,
+    "physicalDeviceLighting": false
+  },
+  "prerequisiteSources": [
+    "https://developer.apple.com/forums/thread/820708",
+    "https://developer.apple.com/help/account/reference/provisioning-with-managed-capabilities/"
+  ]
+}

@@ -11,6 +11,7 @@
     "build:profile": "node scripts/build-input-profile.mjs",
     "thread-status": "node scripts/thread-status.mjs",
     "lighting": "node scripts/lighting.mjs",
+    "lighting:preflight": "node scripts/native-lighting-preflight.mjs",
     "probe:lighting": "node scripts/lighting-probe.mjs",
     "agent-keys": "node scripts/enable-agent-keys.mjs",
     "validate": "node scripts/validate-profile.mjs && node scripts/validate-presets.mjs && node scripts/check-doc-links.mjs",

@@ -75,6 +75,11 @@ Node.js 18 or newer is required. The app binds only to `127.0.0.1`.
 
 ## Agent key lighting — experimental
 
+For preserving official Codex lighting while switching to a separate Claude
+layer, see the [native lighting prototype and compatibility result](docs/research/native-lighting-preservation.md).
+That two-app bridge is not operational on the inspected Codex build. The
+standalone Claude lighting experiment below has different requirements.
+
 Everything above is the project. This part is an experiment on top of it: the
 six Agent keys show the live state of your Claude Code sessions in colour, and
 pressing one goes to that session.

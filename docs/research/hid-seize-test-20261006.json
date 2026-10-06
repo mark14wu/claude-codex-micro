@@ -1,0 +1,107 @@
+{
+  "date": "2026-10-06",
+  "timezone": "America/New_York",
+  "environment": {
+    "macOS": "26.6.2",
+    "build": "25G83",
+    "firmware": "0.6.3",
+    "transport": "USB"
+  },
+  "scope": "Bounded exclusive access and release of the physical vendor HID interface, without lighting or keymap writes",
+  "firstProbe": {
+    "start": "2026-10-06T17:06:22Z",
+    "release": "2026-10-06T17:06:30Z",
+    "requestedHoldSeconds": 8,
+    "hardDeadlineSeconds": 18,
+    "uid": 501,
+    "effectiveUid": 501,
+    "inputMonitoring": "granted outside the execution sandbox",
+    "target": {
+      "vendorId": "0x303a",
+      "productId": "0x8360",
+      "primaryUsagePage": "0xff00",
+      "primaryUsage": 1,
+      "registryIdAtTest": "4295114990"
+    },
+    "openResult": "0x00000000",
+    "closeResult": "0x00000000",
+    "exitCode": 0,
+    "sentReports": 0
+  },
+  "nativeObservationsAfterRelease": {
+    "lightingAcknowledgements": [
+      "2026-10-06T17:06:41.095Z v.oai.rgbcfg",
+      "2026-10-06T17:06:41.155Z v.oai.thstatus"
+    ],
+    "firstLaterReadFailure": "2026-10-06T17:07:09.547Z",
+    "lastObservedDisconnectInInitialWindow": "2026-10-06T17:07:36.034Z",
+    "operatorReport": "Session key or lighting not normal",
+    "interpretation": "Official RPC communication resumed after release, but this is not proof that visible lighting or key behavior fully recovered. Later repeated device disconnects require recovery and separate diagnosis; causation is not established."
+  },
+  "secondProbe": {
+    "start": "2026-10-06T17:07:55.626Z",
+    "vendorInterfacesFound": 0,
+    "sharedHandleOpened": false,
+    "exclusiveHelperSpawned": false,
+    "result": "Skipped because the device was absent",
+    "log": ".local/diagnostics/hid-handoff-1791306475626.ndjson"
+  },
+  "recovery": {
+    "testProcessesRemaining": 0,
+    "usbDevicePresentAt170819Z": false,
+    "usbReconnectRequested": true,
+    "usbDevicePresentAt171115Z": true,
+    "newVendorRegistryId": "4295504162",
+    "sharedStatusQueryAfterReappearance": {
+      "success": true,
+      "firmware": "0.6.3",
+      "profileIndex": 1,
+      "layerIndex": 2
+    },
+    "nativeLightingResponsesAfterReappearance": "Observed in Codex log after 17:10:11Z",
+    "operatorConfirmedRecovery": true,
+    "operatorConfirmation": "Currently on Codex layer; sessions and lighting are normal"
+  },
+  "sharedWriterTest": {
+    "start": "2026-10-06T17:13:50.245Z",
+    "log": ".local/diagnostics/hid-handoff-1791306830245.ndjson",
+    "baselineSharedQuerySucceeded": true,
+    "profileIndex": 1,
+    "layerIndex": 1,
+    "exclusiveOpenSucceeded": true,
+    "sharedWriteWhileSeized": {
+      "time": "2026-10-06T17:13:50.585Z",
+      "result": "WRITE_FAILED",
+      "ioReturn": "0xe00002c5",
+      "message": "exclusive access and device already open"
+    },
+    "holderReleaseSucceeded": true,
+    "holderExit": "2026-10-06T17:13:58.371Z",
+    "holderExitCode": 0,
+    "sameSharedHandleStatusSucceededAfterRelease": "2026-10-06T17:13:58.631Z",
+    "nativeCodex": {
+      "writeBlocked": "2026-10-06T17:13:51.373Z",
+      "ioReturn": "0xe00002c5",
+      "reconnectAttemptsDuringClaim": [
+        "2026-10-06T17:13:52.425Z",
+        "2026-10-06T17:13:54.438Z"
+      ],
+      "reconnectAfterRelease": "2026-10-06T17:13:59.444Z",
+      "rgbConfigResponse": "2026-10-06T17:13:59.453Z",
+      "threadStatusResponse": "2026-10-06T17:13:59.515Z",
+      "deviceStatusResponse": "2026-10-06T17:13:59.572Z",
+      "operatorConfirmedVisibleRecovery": true,
+      "operatorConfirmation": "Keys and lighting are both normal"
+    },
+    "writesPerformedByTest": "device.status queries only; no lighting, keymap or input reports"
+  },
+  "gates": {
+    "canObtainExclusiveVendorHandle": "passed",
+    "blocksExistingSharedWriter": "passed; both test client and native Codex reported exclusive-access errors",
+    "sharedHandleRecoversAfterRelease": "passed on the same test-client handle",
+    "nativeCodexRpcRecoversAfterRelease": "passed; native reconnect and lighting responses observed",
+    "nativeCodexKeysAndVisibleLightingRecover": "passed for this bounded test; operator confirmed keys and lighting normal",
+    "automaticLayerHandoff": "not implemented"
+  },
+  "persistentDeviceConfigurationChanges": false
+}
