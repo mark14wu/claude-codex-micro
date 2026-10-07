@@ -541,29 +541,42 @@ test("unconfirmed navigation is reported without repeated clicks", function()
 end)
 test("main binds six release actions and preserves real F19 archive", function()
   local f = normal()
-  local selected, stopped, archiveBound = {}, 0, nil
+  local selected, stopped, archiveBound, newCancelled = {}, 0, nil, 0
+  local newAllowed, beforeNew
   local sessions = {select = function(slot) selected[#selected + 1] = slot end, stop = function() stopped = stopped + 1 end}
   local archive = {busy = false, bind = function(dryRun) archiveBound = dryRun end, stop = function() stopped = stopped + 1 end}
+  local newSession = {
+    bind = function(allowed, before) newAllowed, beforeNew = allowed, before end,
+    cancel = function() newCancelled = newCancelled + 1 end,
+    stop = function() stopped = stopped + 1 end,
+  }
   local previousSessions, previousArchive = package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"]
+  local previousNew = package.loaded["claude-micro-new-session"]
   package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"] = sessions, archive
+  package.loaded["claude-micro-new-session"] = newSession
   local previousOpen, oldMicro, oldTest, oldArchive = io.open, _G.claudeMicro, _G.microTest, _G.claudeArchive
   io.open = function() error("legacy session JSON must not be read") end
   _G.claudeMicro, _G.microTest, _G.claudeArchive = nil, nil, nil
   local ok, err = pcall(function()
     local main = dofile(mainSource).start()
-    eq(#f.bindings, 6); eq(archiveBound, false)
+    eq(#f.bindings, 6); eq(archiveBound, false); expect(newAllowed())
     for i, binding in ipairs(f.bindings) do
       eq(binding.key, "f" .. (i + 12)); eq(binding.pressed, nil)
       binding.released(); eq(selected[i], i)
     end
+    eq(newCancelled, 6)
     archive.busy = true
     f.bindings[1].released(); eq(#selected, 6)
-    main.stop(); eq(stopped, 2)
+    eq(newAllowed(), false)
+    archive.busy = false; archive.triggerTimer = {}; eq(newAllowed(), false)
+    archive.triggerTimer = nil; expect(newAllowed()); beforeNew(); eq(stopped, 1)
+    main.stop(); eq(stopped, 4)
     for _, binding in ipairs(f.bindings) do expect(binding.deleted) end
   end)
   io.open = previousOpen
   _G.claudeMicro, _G.microTest, _G.claudeArchive = oldMicro, oldTest, oldArchive
   package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"] = previousSessions, previousArchive
+  package.loaded["claude-micro-new-session"] = previousNew
   if not ok then error(err) end
 end)
 print(string.format("%d sidebar regression tests passed", passed))
