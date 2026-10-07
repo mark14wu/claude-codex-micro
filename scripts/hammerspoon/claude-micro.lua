@@ -1,10 +1,18 @@
--- Claude layer: F13-F18 select sidebar sessions; F19 archives; F20 opens a new session.
+-- Claude layer: F13-F18 select sessions; F19 archives; F20 creates; Ctrl+F20 forks.
 local M={hotkeys={}}
+local function pending(action)
+  return action and (action.busy or action.triggerTimer) and true or false
+end
+local function prepareMenuAction()
+  M.sessions.stop()
+  if M.newSession then M.newSession.cancel() end
+end
 function M.stop()
   for _,key in ipairs(M.hotkeys) do key:delete() end
   M.hotkeys={}
   if M.sessions then M.sessions.stop() end
   if M.archive then M.archive.stop() end
+  if M.fork then M.fork.stop() end
   if M.newSession then M.newSession.stop() end
 end
 function M.start()
@@ -15,16 +23,18 @@ function M.start()
   for i=1,6 do
     local slot=i
     M.hotkeys[#M.hotkeys+1]=hs.hotkey.bind({},"f"..(slot+12),nil,function()
-      if M.archive and M.archive.busy then return end
+      if pending(M.archive) or pending(M.fork) then return end
       if M.newSession then M.newSession.cancel() end
       M.sessions.select(slot)
     end)
   end
   M.archive=require("claude-micro-archive")
-  M.archive.bind(false)
+  M.fork=require("claude-micro-fork")
+  M.archive.bind(false,function() return not pending(M.fork) end,prepareMenuAction)
+  M.fork.bind(false,function() return not pending(M.archive) end,prepareMenuAction)
   M.newSession=require("claude-micro-new-session")
   M.newSession.bind(function()
-    return not M.archive.busy and not M.archive.triggerTimer
+    return not pending(M.archive) and not pending(M.fork)
   end,function()
     M.sessions.stop()
   end)

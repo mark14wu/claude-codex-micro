@@ -539,12 +539,17 @@ test("unconfirmed navigation is reported without repeated clicks", function()
   f.module.select(1); f.advance(3)
   eq(#f.clicks, 1); eq(f.module.lastSelection.status, "unconfirmed")
 end)
-test("main binds six release actions and preserves real F19 archive", function()
+test("main binds sessions, archive, new session and fork with mutual exclusion", function()
   local f = normal()
   local selected, stopped, archiveBound, newCancelled = {}, 0, nil, 0
-  local newAllowed, beforeNew
+  local newAllowed, beforeNew, archiveAllowed, beforeArchive, forkAllowed, beforeFork, forkBound
   local sessions = {select = function(slot) selected[#selected + 1] = slot end, stop = function() stopped = stopped + 1 end}
-  local archive = {busy = false, bind = function(dryRun) archiveBound = dryRun end, stop = function() stopped = stopped + 1 end}
+  local archive = {busy = false, bind = function(dryRun, allowed, before)
+    archiveBound, archiveAllowed, beforeArchive = dryRun, allowed, before
+  end, stop = function() stopped = stopped + 1 end}
+  local fork = {busy = false, bind = function(dryRun, allowed, before)
+    forkBound, forkAllowed, beforeFork = dryRun, allowed, before
+  end, stop = function() stopped = stopped + 1 end}
   local newSession = {
     bind = function(allowed, before) newAllowed, beforeNew = allowed, before end,
     cancel = function() newCancelled = newCancelled + 1 end,
@@ -552,14 +557,17 @@ test("main binds six release actions and preserves real F19 archive", function()
   }
   local previousSessions, previousArchive = package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"]
   local previousNew = package.loaded["claude-micro-new-session"]
+  local previousFork = package.loaded["claude-micro-fork"]
   package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"] = sessions, archive
   package.loaded["claude-micro-new-session"] = newSession
+  package.loaded["claude-micro-fork"] = fork
   local previousOpen, oldMicro, oldTest, oldArchive = io.open, _G.claudeMicro, _G.microTest, _G.claudeArchive
   io.open = function() error("legacy session JSON must not be read") end
   _G.claudeMicro, _G.microTest, _G.claudeArchive = nil, nil, nil
   local ok, err = pcall(function()
     local main = dofile(mainSource).start()
-    eq(#f.bindings, 6); eq(archiveBound, false); expect(newAllowed())
+    eq(#f.bindings, 6); eq(archiveBound, false); eq(forkBound, false)
+    expect(newAllowed()); expect(archiveAllowed()); expect(forkAllowed())
     for i, binding in ipairs(f.bindings) do
       eq(binding.key, "f" .. (i + 12)); eq(binding.pressed, nil)
       binding.released(); eq(selected[i], i)
@@ -567,16 +575,26 @@ test("main binds six release actions and preserves real F19 archive", function()
     eq(newCancelled, 6)
     archive.busy = true
     f.bindings[1].released(); eq(#selected, 6)
-    eq(newAllowed(), false)
+    eq(newAllowed(), false); eq(forkAllowed(), false)
     archive.busy = false; archive.triggerTimer = {}; eq(newAllowed(), false)
-    archive.triggerTimer = nil; expect(newAllowed()); beforeNew(); eq(stopped, 1)
-    main.stop(); eq(stopped, 4)
+    eq(forkAllowed(), false); f.bindings[1].released(); eq(#selected, 6)
+    archive.triggerTimer = nil; expect(newAllowed()); expect(forkAllowed())
+    fork.busy = true; eq(newAllowed(), false); eq(archiveAllowed(), false)
+    f.bindings[1].released(); eq(#selected, 6)
+    fork.busy = false; fork.triggerTimer = {}; eq(newAllowed(), false); eq(archiveAllowed(), false)
+    f.bindings[1].released(); eq(#selected, 6)
+    fork.triggerTimer = nil; expect(newAllowed()); expect(archiveAllowed())
+    beforeNew(); eq(stopped, 1)
+    beforeArchive(); eq(stopped, 2); eq(newCancelled, 7)
+    beforeFork(); eq(stopped, 3); eq(newCancelled, 8)
+    main.stop(); eq(stopped, 7)
     for _, binding in ipairs(f.bindings) do expect(binding.deleted) end
   end)
   io.open = previousOpen
   _G.claudeMicro, _G.microTest, _G.claudeArchive = oldMicro, oldTest, oldArchive
   package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"] = previousSessions, previousArchive
   package.loaded["claude-micro-new-session"] = previousNew
+  package.loaded["claude-micro-fork"] = previousFork
   if not ok then error(err) end
 end)
 print(string.format("%d sidebar regression tests passed", passed))
