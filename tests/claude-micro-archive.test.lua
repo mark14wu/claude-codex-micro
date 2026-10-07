@@ -9,9 +9,12 @@ local function expect(value, message)
 end
 
 local function element(attributes, actions)
-  local e = {attributes = attributes or {}, actions = actions or {}}
+  local e = {attributes = attributes or {}, actions = actions or {}, reads = {}}
   e.attributes.AXChildren = e.attributes.AXChildren or {}
-  function e:attributeValue(key) return self.attributes[key] end
+  function e:attributeValue(key)
+    self.reads[key] = (self.reads[key] or 0) + 1
+    return self.attributes[key]
+  end
   function e:actionNames()
     local names = {}
     for name in pairs(self.actions) do names[#names + 1] = name end
@@ -236,7 +239,12 @@ local function fixture(options)
         if point.x == 280 and point.y == 214 then f.archiveClicks = f.archiveClicks + 1; return end
         expect(point.x == 112 and point.y == 92, "unexpected click target")
         f.clicks = f.clicks + 1
-        if not options.noMenu and not f.pendingOpen then children(f.popup, {f.menu}) end
+        if options.sidebarMenuOnPress then children(f.sidebarPopup, {f.sidebarMenu}); return end
+        if options.noMenu or f.pendingOpen then return end
+        if options.openDelay then
+          f.pendingOpen = true
+          f.after(options.openDelay, function() children(f.popup, {f.menu}); f.pendingOpen = false end)
+        else children(f.popup, {f.menu}) end
       end,
     },
     hotkey = {bind = function(_, key, pressed, released)
@@ -258,7 +266,7 @@ end
 test("archives the unique enabled entry owned by the current popup", function()
   local f = fixture()
   f.module.archive(false); f.advance(0.5)
-  expect(f.popupPresses == 1 and f.archiveReturns == 1)
+  expect(f.popupPresses == 0 and f.clicks == 1 and f.archiveReturns == 1)
   expect(not f.module.busy and f.module.lastArchive ~= nil)
   expect(f.module.lastArchive.confirmation == "view-changed" and f.module.lastAttempt.status == "view-changed")
 end)
@@ -271,19 +279,19 @@ test("waits for a menu delayed two seconds", function()
   expect(f.archiveReturns == 1 and not f.module.busy)
 end)
 
-test("uses one verified button click when AXPress has no effect", function()
+test("opens immediately with one verified click instead of waiting for ineffective AXPress", function()
   local f = fixture({firstPressNoEffect = true})
-  f.module.archive(false); f.advance(1.4)
-  expect(f.popupPresses == 1 and f.archiveReturns == 0)
-  f.advance(1)
-  expect(f.popupPresses == 1 and f.clicks == 1 and f.archiveReturns == 1 and not f.module.busy)
+  f.module.archive(false)
+  expect(f.popupPresses == 0 and f.clicks == 1 and f.archiveReturns == 0)
+  f.advance(0.5)
+  expect(f.popupPresses == 0 and f.clicks == 1 and f.archiveReturns == 1 and not f.module.busy)
 end)
 
 test("disabled Archive is never pressed", function()
   local f = fixture({items = {{title = "Archive", enabled = false}}})
   f.module.archive(false); f.advance(4.5)
   expect(f.archiveReturns == 0 and not f.module.busy)
-  expect(f.popupPresses == 1, "an already open menu must not be toggled by retry")
+  expect(f.popupPresses == 0 and f.clicks == 1, "an already open menu must not be toggled by retry")
   expect(f.messages[#f.messages]:find("没有可用的 Archive", 1, true) ~= nil)
 end)
 
@@ -302,7 +310,7 @@ end)
 test("a sidebar menu opened during the operation cannot supply Archive", function()
   local f = fixture({sidebarMenuOnPress = true})
   f.module.archive(false); f.advance(0.5)
-  expect(f.popupPresses == 1 and f.archiveReturns == 0 and f.sidebarArchivePresses == 0)
+  expect(f.popupPresses == 0 and f.clicks == 1 and f.archiveReturns == 0 and f.sidebarArchivePresses == 0)
   expect(not f.module.busy)
 end)
 
@@ -363,13 +371,13 @@ test("repeated releases schedule only one operation and cannot archive twice", f
   expect(f.popupPresses == 0 and f.archiveReturns == 0, "operation ran inside release callback")
   f.boundReleased(); f.advance(0.06); f.boundReleased(); f.advance(0.4); f.boundReleased()
   f.advance(0.2)
-  expect(f.popupPresses == 1 and f.archiveReturns == 1)
+  expect(f.popupPresses == 0 and f.clicks == 1 and f.archiveReturns == 1)
 end)
 
-test("missing menu times out after only one click fallback", function()
+test("missing menu times out after only one verified click", function()
   local f = fixture({noMenu = true})
   f.module.archive(false); f.advance(4.5)
-  expect(f.popupPresses == 1 and f.clicks == 1 and f.archiveReturns == 0 and not f.module.busy)
+  expect(f.popupPresses == 0 and f.clicks == 1 and f.archiveReturns == 0 and not f.module.busy)
   expect(f.messages[#f.messages]:find("菜单未打开", 1, true) ~= nil)
 end)
 
@@ -391,13 +399,13 @@ test("a verified popup descendant is an acceptable click target", function()
   expect(f.hitTests == 1 and f.clicks == 1 and f.archiveReturns == 1)
 end)
 
-test("an obscuring element prevents the click fallback", function()
+test("an obscuring element prevents opening the menu", function()
   local f = fixture({firstPressNoEffect = true, obscured = true})
   f.module.archive(false); f.advance(2.5)
   expect(f.hitTests == 1 and f.clicks == 0 and f.archiveReturns == 0 and not f.module.busy)
 end)
 
-test("an absent hit target prevents the click fallback", function()
+test("an absent hit target prevents opening the menu", function()
   local f = fixture({firstPressNoEffect = true})
   f.hitTarget = nil
   f.module.archive(false); f.advance(2.5)
@@ -423,7 +431,7 @@ for _, invalid in ipairs(invalidFrames) do
   end)
 end
 
-test("a disabled menu button cannot receive the click fallback", function()
+test("a disabled menu button cannot receive the opening click", function()
   local f = fixture({firstPressNoEffect = true, buttonEnabled = false})
   f.module.archive(false); f.advance(2.5)
   expect(f.clicks == 0 and f.archiveReturns == 0 and not f.module.busy)
@@ -476,7 +484,7 @@ end)
 test("a dry-run binding checks the real hotkey path without Archive", function()
   local f = fixture({firstPressNoEffect = true})
   f.module.bind(true); f.boundReleased(); f.advance(2.5)
-  expect(f.popupPresses == 1 and f.clicks == 1 and f.archiveReturns == 0 and f.escapes == 1)
+  expect(f.popupPresses == 0 and f.clicks == 1 and f.archiveReturns == 0 and f.escapes == 1)
   expect(f.module.lastDryRun.found == true and not f.module.busy)
 end)
 
@@ -664,7 +672,7 @@ test("a confirmation after Return requires human action and is never accepted", 
   expect(f.archiveReturns == 1 and not f.module.busy and f.module.lastArchive == nil)
   expect(f.module.lastAttempt.status == "confirmation-required")
   f.advance(1); f.boundReleased(); f.advance(0.5)
-  expect(f.archiveReturns == 1 and f.popupPresses == 1 and f.confirmationClicks == 0)
+  expect(f.archiveReturns == 1 and f.popupPresses == 0 and f.clicks == 1 and f.confirmationClicks == 0)
 end)
 
 test("confirmation takes precedence over a changed route", function()
@@ -681,6 +689,50 @@ test("confirmation takes precedence over the result timeout", function()
   f.showConfirmation(); f.advance(0.3)
   expect(not f.module.busy and f.module.lastArchive == nil)
   expect(f.module.lastAttempt.status == "confirmation-required")
+end)
+
+test("context capture stays shallow and each poll reads the sidebar at most once", function()
+  local f = fixture()
+  f.module.bind(true); f.boundReleased()
+  expect(f.primary.reads.AXChildren == nil and f.sidebar.reads.AXChildren == nil,
+    "capturing the release context walked the session content")
+  f.advance(0.5)
+  expect(f.module.lastDryRun and f.module.lastDryRun.focusVerified)
+  expect((f.sidebar.reads.AXChildren or 0) <= 3,
+    "initial validation and two menu polls should not repeatedly rescan the sidebar")
+  expect(f.popupPresses == 0 and f.clicks == 1 and f.archiveReturns == 0)
+end)
+
+test("a long conversation is skipped during all archive observations", function()
+  local f = fixture()
+  local messages = element({AXRole = "AXGroup", AXDescription = "Chat messages"})
+  local text = element({AXRole = "AXStaticText", AXTitle = "Conversation contents"})
+  local nodes = {}
+  for _ = 1, 1900 do nodes[#nodes + 1] = text end
+  children(messages, nodes)
+  children(f.primary, {f.popup, messages})
+  f.module.archive(true); f.advance(0.5)
+  expect(f.module.lastDryRun and f.module.lastDryRun.focusVerified)
+  expect(messages.reads.AXChildren == nil and text.reads.AXRole == nil,
+    "archive should not read conversation history")
+end)
+
+test("an incomplete oversized tree cannot authorize Archive", function()
+  local f = fixture()
+  local nodes = {}
+  for _ = 1, 1800 do nodes[#nodes + 1] = element({AXRole = "AXGroup"}) end
+  children(f.sidebar, nodes)
+  f.module.archive(false); f.advance(0.5)
+  expect(f.clicks == 0 and f.archiveReturns == 0 and not f.module.busy)
+  expect(f.messages[#f.messages]:find("无法完整核对", 1, true) ~= nil)
+end)
+
+test("a confirmation appearing while the menu opens blocks Archive", function()
+  local f = fixture({openDelay = 0.2})
+  f.module.archive(false)
+  f.showConfirmation()
+  f.advance(0.5)
+  expect(f.archiveReturns == 0 and f.confirmationClicks == 0 and not f.module.busy)
 end)
 
 print(string.format("%d offline archive tests passed", passed))

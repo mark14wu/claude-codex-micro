@@ -7,20 +7,35 @@ local function attr(e,key)
   local ok,value=pcall(function() return e:attributeValue(key) end)
   if ok then return value end
 end
-local function label(e)
-  local desc=attr(e,"AXDescription")
+-- Cache only during one synchronous read, never between keys or timer ticks.
+-- Accessibility attributes are cross-process calls, including missing values.
+local function reader()
+  local cache,missing={},{}
+  return function(e,key)
+    if not e then return nil end
+    local fields=cache[e]
+    if not fields then fields={}; cache[e]=fields end
+    if fields[key]==nil then fields[key]=attr(e,key); if fields[key]==nil then fields[key]=missing end end
+    if fields[key]~=missing then return fields[key] end
+  end
+end
+local function label(e,read)
+  read=read or attr
+  local desc=read(e,"AXDescription")
   if type(desc)=="string" and desc~="" then return desc end
-  local title=attr(e,"AXTitle")
+  local title=read(e,"AXTitle")
   return type(title)=="string" and title or ""
 end
-local function walk(root,predicate)
+local function walk(root,predicate,read,prune)
+  read=read or reader()
   local found,seen,count={}, {},0
   local function visit(e,depth)
     if not e or seen[e] or depth>40 or count>=2400 then return end
     seen[e]=true; count=count+1
     if predicate(e) then found[#found+1]=e end
-    if label(e)=="Chat messages" or attr(e,"AXRole")=="AXMenuBar" then return end
-    for _,child in ipairs(attr(e,"AXChildren") or {}) do visit(child,depth+1) end
+    if read(e,"AXDescription")=="Chat messages" or read(e,"AXRole")=="AXMenuBar"
+      or (prune and prune(e)) then return end
+    for _,child in ipairs(read(e,"AXChildren") or {}) do visit(child,depth+1) end
   end
   visit(root,0)
   return found
@@ -41,59 +56,61 @@ local function frontmost(app)
   return hs.application.frontmostApplication()==app
 end
 local function obstructed(win)
+  local read=reader()
   return #walk(win,function(e)
-    local role=attr(e,"AXRole")
+    local role=read(e,"AXRole")
     return role=="AXSheet" or role=="AXDialog" or role=="AXMenu"
-      or (role=="AXButton" and label(e)=="Archive anyway")
-  end)>0
+      or (role=="AXButton" and label(e,read)=="Archive anyway")
+  end,read)>0
 end
-local function projectRows(anchor,limit)
-  local project=label(anchor):match("^New session in (.+)$")
-  local group=attr(anchor,"AXParent")
+local function projectRows(anchor,limit,read)
+  local project=label(anchor,read):match("^New session in (.+)$")
+  local group=read(anchor,"AXParent")
   local headers={}
-  for _,e in ipairs(attr(group,"AXChildren") or {}) do
-    if attr(e,"AXRole")=="AXButton" and label(e)==project then headers[#headers+1]=e end
+  for _,e in ipairs(read(group,"AXChildren") or {}) do
+    if read(e,"AXRole")=="AXButton" and label(e,read)==project then headers[#headers+1]=e end
   end
   if #headers~=1 then return nil,"无法确认 project 的边界" end
   local rows,seenRows={},{}
   for _,menu in ipairs(walk(group,function(e)
-    return attr(e,"AXRole")=="AXPopUpButton" and label(e):match("^More options for .+")
-  end)) do
-    local row=attr(menu,"AXParent")
+    return read(e,"AXRole")=="AXPopUpButton" and label(e,read):match("^More options for .+")
+  end,read)) do
+    local row=read(menu,"AXParent")
     local buttons={}
     -- The popup lives inside an extra AXGroup in the real Electron tree;
     -- macOS's rendered accessibility outline hides that wrapper.
     for _=1,6 do
       if not row or row==group then break end
-      buttons=walk(row,function(e) return attr(e,"AXRole")=="AXButton" end)
+      buttons=walk(row,function(e) return read(e,"AXRole")=="AXButton" end,read)
       if #buttons>0 then break end
-      row=attr(row,"AXParent")
+      row=read(row,"AXParent")
     end
     if not row or row==group or #buttons~=1 then return nil,"侧栏会话行无法唯一识别，未切换" end
     local rowMenus=walk(row,function(e)
-      return attr(e,"AXRole")=="AXPopUpButton" and label(e):match("^More options for .+")
-    end)
+      return read(e,"AXRole")=="AXPopUpButton" and label(e,read):match("^More options for .+")
+    end,read)
     if #rowMenus~=1 or rowMenus[1]~=menu then return nil,"侧栏会话行边界不明确，未切换" end
     if not seenRows[row] then
       seenRows[row]=true
-      local title=label(menu):match("^More options for (.+)$")
+      local title=label(menu,read):match("^More options for (.+)$")
       rows[#rows+1]={row=row,button=buttons[1],menu=menu,title=title,project=project,group=group}
       if #rows>=limit then break end
     end
   end
   return {group=group,header=headers[1],project=project,rows=rows}
 end
-function M.readSidebar(sidebar)
+function M.readSidebar(sidebar,read)
+  read=read or reader()
   local anchors=walk(sidebar,function(e)
-    return attr(e,"AXRole")=="AXButton" and label(e):match("^New session in .+")
-  end)
+    return read(e,"AXRole")=="AXButton" and label(e,read):match("^New session in .+")
+  end,read)
   if #anchors==0 then return nil,"未找到 Claude 侧栏的 project，请先打开 Code 视图" end
   local result={sidebar=sidebar,projects={},rows={}}
   local seenGroups={}
   for _,anchor in ipairs(anchors) do
-    local group=attr(anchor,"AXParent")
+    local group=read(anchor,"AXParent")
     if not seenGroups[group] then
-      local project,err=projectRows(anchor,6-#result.rows)
+      local project,err=projectRows(anchor,6-#result.rows,read)
       if not project then return nil,err end
       seenGroups[group]=true
       result.projects[#result.projects+1]=project
@@ -108,10 +125,16 @@ function M.snapshot(app)
   if not app then return nil,"Claude 尚未启动" end
   local win=window(app)
   if not win then return nil,"正在等待 Claude 窗口" end
-  if obstructed(win) then return nil,"请先关闭 Claude 的菜单或确认框，再切换会话" end
-  local sidebars=walk(win,function(e) return label(e)=="Sidebar" end)
+  local read,sidebars,blocked=reader(),{},false
+  walk(win,function(e)
+    local role=read(e,"AXRole")
+    if label(e,read)=="Sidebar" then sidebars[#sidebars+1]=e end
+    if role=="AXSheet" or role=="AXDialog" or role=="AXMenu"
+      or (role=="AXButton" and label(e,read)=="Archive anyway") then blocked=true end
+  end,read)
+  if blocked then return nil,"请先关闭 Claude 的菜单或确认框，再切换会话" end
   if #sidebars~=1 then return nil,"请先展开 Claude 侧栏" end
-  local snapshot,err=M.readSidebar(sidebars[1])
+  local snapshot,err=M.readSidebar(sidebars[1],read)
   if not snapshot then return nil,err end
   snapshot.app=app; snapshot.window=win
   return snapshot
@@ -122,6 +145,21 @@ local function finish(message)
 end
 local function finite(n)
   return type(n)=="number" and n==n and n>-math.huge and n<math.huge
+end
+local function contains(root,e)
+  -- Walk the short ancestry path and verify every edge against live children.
+  -- A detached element can still report its old AXParent, so parent alone is
+  -- insufficient to prove that an archived row remains in the sidebar.
+  for _=1,40 do
+    if e==root then return true end
+    local parent=attr(e,"AXParent")
+    if not parent then return false end
+    local count=0
+    for _,child in ipairs(attr(parent,"AXChildren") or {}) do if child==e then count=count+1 end end
+    if count~=1 then return false end
+    e=parent
+  end
+  return false
 end
 local function clickRow(ctx,target)
   if not frontmost(ctx.app) or window(ctx.app)~=ctx.window or obstructed(ctx.window) then return false end
@@ -139,9 +177,8 @@ local function clickRow(ctx,target)
       if not frontmost(ctx.app) or window(ctx.app)~=ctx.window then return false end
       -- Confirm that this exact row is still in the captured project; never
       -- resolve the slot again after an action may have reordered the list.
-      local present=walk(target.group,function(e) return e==target.button end)
-      local projectPresent=walk(ctx.sidebar,function(e) return e==target.group end)
-      if #present~=1 or #projectPresent~=1 or label(target.menu)~="More options for "..target.title then return false end
+      if not contains(target.group,target.button) or not contains(ctx.sidebar,target.group)
+        or label(target.menu)~="More options for "..target.title then return false end
       return pcall(hs.eventtap.leftClick,point,50000)
     end
     hit=attr(hit,"AXParent")
@@ -149,10 +186,11 @@ local function clickRow(ctx,target)
   return false
 end
 local function currentTitle(win)
+  local read=reader()
   local webs=walk(win,function(e)
-    return attr(e,"AXRole")=="AXWebArea" and type(attr(e,"AXTitle"))=="string"
-      and attr(e,"AXTitle"):match(" %- Claude Code$")
-  end)
+    return read(e,"AXRole")=="AXWebArea" and type(read(e,"AXTitle"))=="string"
+      and read(e,"AXTitle"):match(" %- Claude Code$")
+  end,read,function(e) return read(e,"AXRole")=="AXWebArea" end)
   if #webs~=1 then return nil end
   return attr(webs[1],"AXTitle"):match("^(.*) %- Claude Code$")
 end
@@ -160,10 +198,11 @@ function M.select(slot)
   if type(slot)~="number" or slot%1~=0 or slot<1 or slot>6 then return end
   finish()
   M.lastSelection=nil
-  hs.application.launchOrFocusByBundleID(BUNDLE)
+  local existing=hs.application.get(BUNDLE)
+  if not existing or not frontmost(existing) then hs.application.launchOrFocusByBundleID(BUNDLE) end
   local start=hs.timer.secondsSinceEpoch()
   local ctx,target,clickedAt=nil,nil,nil
-  M.timer=hs.timer.doEvery(0.12,function()
+  M.timer=hs.timer.doEvery(0.03,function()
     local app=hs.application.get(BUNDLE)
     if not app or not frontmost(app) then
       if ctx or hs.timer.secondsSinceEpoch()-start>2 then finish("未切换会话：Claude 不在前台") end

@@ -4,6 +4,7 @@ local source = arg[1] or "scripts/hammerspoon/claude-micro-sidebar.lua"
 local mainSource = arg[2] or "scripts/hammerspoon/claude-micro.lua"
 local BUNDLE = "com.anthropic.claudefordesktop"
 local passed = 0
+local attributeReads = 0
 
 local function expect(value, message)
   if not value then error(message or "expectation failed", 2) end
@@ -14,7 +15,10 @@ end
 local function element(attributes, actions)
   local e = {attributes = attributes or {}, actions = actions or {}}
   e.attributes.AXChildren = e.attributes.AXChildren or {}
-  function e:attributeValue(key) return self.attributes[key] end
+  function e:attributeValue(key)
+    attributeReads = attributeReads + 1
+    return self.attributes[key]
+  end
   function e:actionNames()
     local result = {}
     for name in pairs(self.actions) do result[#result + 1] = name end
@@ -166,6 +170,26 @@ test("first project provides the six physical slots in order", function()
   local state = assert(f.module.readSidebar(f.sidebar))
   eq(state.rows[1].project, "Top"); eq(#state.rows, 6)
   for i = 1, 6 do eq(state.rows[i].button, f.first.rows[i].button) end
+end)
+test("one snapshot bounds cross-process reads and keeps missing labels cached", function()
+  local f = normal()
+  for _, row in ipairs(f.first.rows) do row.button.attributes.AXDescription = nil end
+  local before = attributeReads
+  eq(#assert(f.module.snapshot()).rows, 6)
+  expect(attributeReads - before < 450, "snapshot performs repeated accessibility scans: " .. (attributeReads - before))
+end)
+test("foreground selection begins within 50ms without reactivating Claude", function()
+  local f = normal()
+  f.module.select(1); f.advance(0.05)
+  eq(#f.clicks, 1); eq(f.launches, 0)
+end)
+test("view confirmation reads the web root without rescanning session rows", function()
+  local f = normal()
+  f.module.select(1); f.advance(0.04)
+  local before = attributeReads
+  f.advance(0.04)
+  eq(f.module.lastSelection.status, "view-matched")
+  expect(attributeReads - before < 30, "view confirmation rescanned the window")
 end)
 test("DFS preserves order when the first project is more deeply nested", function()
   local f = normal()
