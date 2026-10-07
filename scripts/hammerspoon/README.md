@@ -19,6 +19,9 @@ The Claude hardware layer must send these keys (leave the Codex layer unchanged)
 For Fork, assign an Input shortcut/macro that presses Left Ctrl, clicks F20,
 then releases Left Ctrl. macOS does not expose F21 through Hammerspoon.
 
+For this Mac's manual layer setup, remove all AppSense application links in Input
+and use only Micro's physical layer button to switch between Codex and Claude.
+
 New Session opens Claude's native empty session composer, retaining the app's
 project/location selection. It does not send a prompt or start an agent run.
 Claude creates the session when the user submits its first prompt. New Session
