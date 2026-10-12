@@ -4,6 +4,7 @@ local function pending(action)
   return action and (action.busy or action.triggerTimer) and true or false
 end
 local function prepareMenuAction()
+  if M.effort then M.effort.cancel() end
   M.sessions.stop()
   if M.newSession then M.newSession.cancel() end
 end
@@ -14,6 +15,7 @@ function M.stop()
   if M.archive then M.archive.stop() end
   if M.fork then M.fork.stop() end
   if M.newSession then M.newSession.stop() end
+  if M.effort then M.effort.stop() end
 end
 function M.start()
   if _G.claudeMicro and _G.claudeMicro.stop then _G.claudeMicro.stop() end
@@ -24,6 +26,7 @@ function M.start()
     local slot=i
     M.hotkeys[#M.hotkeys+1]=hs.hotkey.bind({},"f"..(slot+12),nil,function()
       if pending(M.archive) or pending(M.fork) then return end
+      if M.effort then M.effort.cancel() end
       if M.newSession then M.newSession.cancel() end
       M.sessions.select(slot)
     end)
@@ -36,7 +39,13 @@ function M.start()
   M.newSession.bind(function()
     return not pending(M.archive) and not pending(M.fork)
   end,function()
+    if M.effort then M.effort.cancel() end
     M.sessions.stop()
+  end)
+  M.effort=require("claude-micro-effort")
+  M.effort.bind(function()
+    return not pending(M.archive) and not pending(M.fork) and not pending(M.newSession)
+      and not pending(M.sessions) and not M.sessions.timer
   end)
   return M
 end

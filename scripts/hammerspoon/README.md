@@ -15,6 +15,18 @@ The Claude hardware layer must send these keys (leave the Codex layer unchanged)
 | Third row, first from left | F20 | Activate Claude and open File → New Session |
 | Third row, second from left | F19 | Archive the current Claude session |
 | Third row, fourth from left | Ctrl+F20 | Fork the current Claude session |
+| Wheel clockwise | Ctrl+F18 | Increase Claude effort one level |
+| Wheel counterclockwise | Ctrl+F19 | Decrease Claude effort one level |
+
+For this Hammerspoon setup, each wheel direction is a three-step macro: press
+Left Ctrl, click F18 (up) or F19 (down), release Left Ctrl. It replaces the
+standalone configurator's keyboard-only effort macro on this local profile.
+The handler opens the unique visible Effort picker, verifies slider focus,
+and sends one arrow. It leaves the picker visible and never sends Escape, so a
+failed opening or rapid rotation cannot trigger Claude's double-Escape Rewind.
+It only runs with Claude in front; navigation, Archive, Fork and New Session
+cancel pending effort changes. Multiple panes, dialogs and unconfirmed changes
+are refused. Keep the original Input profile as a backup when importing.
 
 For Fork, assign an Input shortcut/macro that presses Left Ctrl, clicks F20,
 then releases Left Ctrl. macOS does not expose F21 through Hammerspoon.
@@ -54,4 +66,5 @@ lua tests/claude-micro-archive.test.lua
 lua tests/claude-micro-new-session.test.lua
 lua tests/claude-micro-fork.test.lua
 lua tests/claude-micro-accessibility.test.lua
+lua tests/claude-micro-effort.test.lua
 ```

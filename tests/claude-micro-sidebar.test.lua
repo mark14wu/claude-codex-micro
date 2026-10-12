@@ -603,6 +603,13 @@ test("main binds sessions, archive, new session and fork with mutual exclusion",
   local previousSessions, previousArchive = package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"]
   local previousNew = package.loaded["claude-micro-new-session"]
   local previousFork = package.loaded["claude-micro-fork"]
+  local previousEffort = package.loaded["claude-micro-effort"]
+  local effortAllowed, effortCancelled = nil, 0
+  package.loaded["claude-micro-effort"] = {
+    bind=function(allowed) effortAllowed=allowed end,
+    cancel=function() effortCancelled=effortCancelled+1 end,
+    stop=function() end,
+  }
   package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"] = sessions, archive
   package.loaded["claude-micro-new-session"] = newSession
   package.loaded["claude-micro-fork"] = fork
@@ -618,7 +625,9 @@ test("main binds sessions, archive, new session and fork with mutual exclusion",
       binding.released(); eq(selected[i], i)
     end
     eq(newCancelled, 6)
+    eq(effortCancelled, 6); expect(effortAllowed())
     archive.busy = true
+    eq(effortAllowed(), false)
     f.bindings[1].released(); eq(#selected, 6)
     eq(newAllowed(), false); eq(forkAllowed(), false)
     archive.busy = false; archive.triggerTimer = {}; eq(newAllowed(), false)
@@ -640,6 +649,7 @@ test("main binds sessions, archive, new session and fork with mutual exclusion",
   package.loaded["claude-micro-sidebar"], package.loaded["claude-micro-archive"] = previousSessions, previousArchive
   package.loaded["claude-micro-new-session"] = previousNew
   package.loaded["claude-micro-fork"] = previousFork
+  package.loaded["claude-micro-effort"] = previousEffort
   if not ok then error(err) end
 end)
 print(string.format("%d sidebar regression tests passed", passed))
