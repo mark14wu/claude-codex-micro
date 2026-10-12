@@ -20,6 +20,22 @@ test("archives the unique enabled entry owned by the current popup", function()
   expect(not f.module.busy and f.module.lastArchive ~= nil)
   expect(f.module.lastArchive.confirmation == "view-changed" and f.module.lastAttempt.status == "view-changed")
 end)
+test("the menu action restores accessibility before reading its session", function()
+  local f = fixture()
+  children(f.window, {})
+  f.appElement.attributes.AXManualAccessibility = false
+  local writes = 0
+  function f.appElement:setAttributeValue(key, value)
+    expect(key == "AXManualAccessibility" and value == true)
+    writes = writes + 1
+    self.attributes[key] = value
+    children(f.window, {f.web})
+    return self
+  end
+  f.module.archive(true); f.advance(0.5)
+  expect(f.module.lastDryRun and f.module.lastDryRun.focusVerified)
+  expect(writes == 1 and f.archiveReturns == 0 and not f.module.busy)
+end)
 
 test("waits for a menu delayed two seconds", function()
   local f = fixture({openDelay = 2})

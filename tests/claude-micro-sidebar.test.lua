@@ -2,6 +2,7 @@
 -- Run from the repository root: lua tests/claude-micro-sidebar.test.lua
 local source = arg[1] or "scripts/hammerspoon/claude-micro-sidebar.lua"
 local mainSource = arg[2] or "scripts/hammerspoon/claude-micro.lua"
+package.path = "scripts/hammerspoon/?.lua;" .. package.path
 local BUNDLE = "com.anthropic.claudefordesktop"
 local passed = 0
 local attributeReads = 0
@@ -170,6 +171,50 @@ test("first project provides the six physical slots in order", function()
   local state = assert(f.module.readSidebar(f.sidebar))
   eq(state.rows[1].project, "Top"); eq(#state.rows, 6)
   for i = 1, 6 do eq(state.rows[i].button, f.first.rows[i].button) end
+end)
+test("snapshot restores a Claude web tree hidden by disabled accessibility", function()
+  local f = normal()
+  children(f.window, {})
+  f.appElement.attributes.AXManualAccessibility = false
+  local writes = 0
+  function f.appElement:setAttributeValue(key, value)
+    eq(key, "AXManualAccessibility"); eq(value, true)
+    writes = writes + 1
+    self.attributes[key] = value
+    children(f.window, {f.web})
+    return self
+  end
+  local state = assert(f.module.snapshot())
+  eq(#state.rows, 6); eq(writes, 1)
+  f.module.select(2); f.advance(0.1)
+  eq(f.module.lastSelection.status, "view-matched")
+  eq(writes, 1)
+end)
+test("first selection waits for Electron's delayed tree without restarting its debounce", function()
+  local f = normal()
+  children(f.window, {})
+  f.appElement.attributes.AXManualAccessibility = false
+  local writes = 0
+  function f.appElement:setAttributeValue(key, value)
+    eq(key, "AXManualAccessibility"); eq(value, true)
+    writes = writes + 1
+    -- Current Electron's getter can remain false even when this succeeds.
+    f.schedule(2.1, function() children(f.window, {f.web}) end, false)
+    return self
+  end
+  f.module.select(2); f.advance(2)
+  eq(#f.clicks, 0); expect(f.module.timer ~= nil); eq(writes, 1)
+  f.advance(0.3)
+  eq(f.module.lastSelection.status, "view-matched")
+  eq(f.clicks[1], f.first.rows[2].button); eq(writes, 1)
+end)
+test("a web tree that never appears times out after the initial recovery window", function()
+  local f = normal()
+  children(f.window, {})
+  f.module.select(1); f.advance(3)
+  expect(f.module.timer ~= nil); eq(#f.clicks, 0)
+  f.advance(1.1)
+  eq(f.module.timer, nil); eq(#f.clicks, 0)
 end)
 test("one snapshot bounds cross-process reads and keeps missing labels cached", function()
   local f = normal()
@@ -411,7 +456,7 @@ for _, role in ipairs({"AXMenu", "AXDialog", "AXSheet"}) do
   test("open " .. role .. " blocks session selection", function()
     local f = normal()
     children(f.web, {f.sidebar, element({AXRole = role})})
-    f.module.select(1); f.advance(3)
+    f.module.select(1); f.advance(5)
     eq(#f.clicks, 0); eq(f.module.timer, nil)
   end)
 end

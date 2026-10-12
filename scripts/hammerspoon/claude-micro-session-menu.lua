@@ -1,6 +1,7 @@
 -- Verified actions on the current Claude Code session's own menu.
 -- Each instance has independent timers, hotkeys, and result records.
 local Factory = {}
+local accessibility = require("claude-micro-accessibility")
 function Factory.new(options)
   assert(options and options.action and options.method and options.resultField)
   local M = {busy=false, timer=nil, triggerTimer=nil, hotkey=nil, lastPress=0}
@@ -29,7 +30,7 @@ function Factory.new(options)
   -- old separate context/pane/menu/confirmation searches revisited the same tree
   -- many times per timer tick. Records only live for this one observation.
   local function observe(app,details)
-    local ax=hs.axuielement.applicationElement(app)
+    local ax=accessibility.applicationElement(app)
     local win=attr(ax,"AXFocusedWindow") or attr(ax,"AXMainWindow")
     if not win then return nil,"无法读取 Claude 当前窗口" end
     local state={win=win,nodes={},webs={},confirm=false,cancel=false,modal=false}

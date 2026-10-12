@@ -22,6 +22,13 @@ then releases Left Ctrl. macOS does not expose F21 through Hammerspoon.
 For this Mac's manual layer setup, remove all AppSense application links in Input
 and use only Micro's physical layer button to switch between Codex and Claude.
 
+Session selection and session-menu actions request Claude's Electron accessibility
+tree once per process, so a Claude restart does not leave visible sessions
+unreadable. Session selection allows the tree time to appear on first use.
+The accessibility flag can still read false after a successful request; repeated
+writes would reset Electron's initialization delay. Hammerspoon still needs its
+existing macOS Accessibility permission.
+
 New Session opens Claude's native empty session composer, retaining the app's
 project/location selection. It does not send a prompt or start an agent run.
 Claude creates the session when the user submits its first prompt. New Session
@@ -46,4 +53,5 @@ lua tests/claude-micro-sidebar.test.lua
 lua tests/claude-micro-archive.test.lua
 lua tests/claude-micro-new-session.test.lua
 lua tests/claude-micro-fork.test.lua
+lua tests/claude-micro-accessibility.test.lua
 ```

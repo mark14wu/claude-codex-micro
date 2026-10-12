@@ -1,6 +1,7 @@
 -- Resolve F13-F18 from the first six visible sessions across Claude projects.
 -- Project and session order follow the sidebar, never URLs saved at setup time.
 local M = {timer=nil}
+local accessibility = require("claude-micro-accessibility")
 local BUNDLE = "com.anthropic.claudefordesktop"
 local log = hs.logger.new("ClaudeSlots","info")
 local function attr(e,key)
@@ -49,7 +50,7 @@ local function act(e,action)
   return ok and result~=nil and result~=false
 end
 local function window(app)
-  local ax=hs.axuielement.applicationElement(app)
+  local ax=accessibility.applicationElement(app)
   return attr(ax,"AXFocusedWindow") or attr(ax,"AXMainWindow")
 end
 local function frontmost(app)
@@ -212,7 +213,9 @@ function M.select(slot)
       local err
       ctx,err=M.snapshot(app)
       if not ctx then
-        if hs.timer.secondsSinceEpoch()-start>2 then finish(err) end
+        -- Electron may defer exposing its web tree for two seconds after the
+        -- first accessibility request. A ready sidebar still clicks at once.
+        if hs.timer.secondsSinceEpoch()-start>4 then finish(err) end
         return
       end
       target=ctx.rows[slot]
